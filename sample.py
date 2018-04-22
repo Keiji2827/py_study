@@ -1,19 +1,21 @@
-from PyQt5.QtCore import QDir, QPoint, QRect, QSize, Qt
-from PyQt5.QtGui import QImage, QImageWriter, QPainter, QPen, qRgb
-from PyQt5.QtWidgets import (QAction, QApplication, QColorDialog, QFileDialog,
-        QInputDialog, QMainWindow, QMenu, QMessageBox, QWidget)
+import sys
+from PyQt5.QtCore import *#QDir, QPoint, QRect, QSize, Qt
+from PyQt5.QtGui import *#QImage, QImageWriter, QPainter, QPen, qRgb
+from PyQt5.QtWidgets import *#(QAction, QApplication, QColorDialog, QFileDialog,
+        #QInputDialog, QMainWindow, QMenu, QMessageBox, QWidget)
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter
 
-
+# 手書き描画用のウィジェットクラス
 class ScribbleArea(QWidget):
     def __init__(self, parent=None):
-        super(ScribbleArea, self).__init__(parent)
+#        super(ScribbleArea, self).__init__(parent)
+        super().__init__(parent) # for python3
 
         self.setAttribute(Qt.WA_StaticContents)
-        self.modified = False
-        self.scribbling = False
+#        self.modified = False
+#        self.scribbling = False
         self.myPenWidth = 1
-        self.myPenColor = Qt.blue
+        self.myPenColor = Qt.blue #blueのみ？
         self.image = QImage()
         self.lastPoint = QPoint()
 
@@ -76,6 +78,7 @@ class ScribbleArea(QWidget):
             self.resizeImage(self.image, QSize(newWidth, newHeight))
             self.update()
 
+        # なんだろう？
         super(ScribbleArea, self).resizeEvent(event)
 
     def drawLineTo(self, endPoint):
@@ -127,14 +130,26 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
+        # 必須っぽい。createActionsに関係？
+        # 定義だけされていて後のappendで要素を代入してそう
+        # 赤文字はローカル定義っぽいな。
+        # saveAsActsやScribbleAreaは初期化と共に定義している模様。
         self.saveAsActs = []
 
-        self.scribbleArea = ScribbleArea()
-        self.setCentralWidget(self.scribbleArea)
+        # 上の方で定義してる。ScribbleArea()は何？
+#        self.scribbleArea = ScribbleArea()
+#        self.setCentralWidget(self.scribbleArea)
 
+        BoxLay = QVBoxLayout()
+        self.scribbleArea = ScribbleArea()
+        BoxLay.addWidget(self.scribbleArea)
+
+        # メニューバーの作成
         self.createActions()
         self.createMenus()
+        print("test")
 
+        # ウィンドウについて
         self.setWindowTitle("Scribble")
         self.resize(500, 500)
 
@@ -219,6 +234,8 @@ class MainWindow(QMainWindow):
         self.aboutQtAct = QAction("About &Qt", self,
                 triggered=QApplication.instance().aboutQt)
 
+#        self.sampleAct = QAction("Sample &Qt", self)
+
     def createMenus(self):
         self.saveAsMenu = QMenu("&Save As", self)
         for action in self.saveAsActs:
@@ -241,9 +258,13 @@ class MainWindow(QMainWindow):
         helpMenu.addAction(self.aboutAct)
         helpMenu.addAction(self.aboutQtAct)
 
+        sampleMenu = QMenu("&Sample", self)
+#        sampleMenu.addAction(selfs.sampleAct)
+
         self.menuBar().addMenu(fileMenu)
         self.menuBar().addMenu(optionMenu)
         self.menuBar().addMenu(helpMenu)
+        self.menuBar().addMenu(sampleMenu)
 
     def maybeSave(self):
         if self.scribbleArea.isModified():

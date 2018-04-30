@@ -11,7 +11,29 @@ class Button01(QMainWindow):
         # 親クラスの初期化
         super().__init__()
         # このクラスの初期化
-        self.initUI()
+#        self.initUI()
+        # ColerDialog
+        thisColor = QColor(0,0,0)
+        self.ColorButton = QPushButton('select color', self)
+        self.ColorButton.move(27, 15)
+
+        # Qpainterを使う方法もあるが、ここではbackground-colorを設定することで色を変える
+        self.myFrame = QFrame(self)
+        self.myFrame.setStyleSheet("QtWidgets { background-color: %s }" % thisColor.name())
+        self.myFrame.setGeometry(75,50,25,25)
+
+        self.ColorButton.clicked.connect(self.showDialog)
+
+        self.setGeometry(200,100,25,25)
+
+        self.show()
+
+    def showDialog(self):
+        # ダイアログを表示する
+        getcolor = QColorDialog.getColor()
+
+        if getcolor.isValid():
+            self.myFrame.setStyleSheet("QtWidgets { background-color: %s }" % getcolor.name())
 
     # 初期化
     def initUI(self):
@@ -25,7 +47,7 @@ class Button01(QMainWindow):
 
         # Windowの名前
         self.setWindowTitle('Button Window')
-        self.show()
+#        self.show()
 
     # クリックされたときの動作の定義
     def button01clicked(self):

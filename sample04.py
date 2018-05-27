@@ -88,20 +88,104 @@ class myTableModel(QAbstractTableModel):
     def rowCount(self, parent):
         return len(self.list)
 
+    def columnCount(self, parent):
+        return len(self.list[0])
+
+    def flags(self, index):
+        return Qt.ItemIsEditable | Qt.ItemIsEnabled | Qt.ItemIsSelectable
+
+    def data(self, index, role):
+        if role == Qt.EditRole:
+            row = index.row()
+            column = index.column()
+            return self.list[row][column]
+
+        if role == Qt.DisplayRole:
+            row = index.row()
+            column = index.column()
+            value = self.list[row][column]
+            return value
+
+    def setData(self, index, value, role = Qt.EditRole):
+        if role == Qt.EditRole:
+            row = index.row()
+            column = index.column()
+            self.list[row][column] = value
+            self.dataChanged.emit(index, index)
+            return True
+        return False
+
+    def headerData(self, section, orientation, role):
+        if role == Qt.DisplayRole:
+            if orientation == Qt.Horizontal:
+                if section < len(self.headers):
+                    return self.headers[section]
+                else:
+                    return "not implemented"
+            else:
+                return "item %d" % section
+
+class comboDelegate(QItemDelegate):
+    comboItems=['コンボ--0','コンボ--1','コンボ--2']
+    def createEditor(self, parent, option, proxyModelIndex):
+        combo = QComboBox(parent)
+        combo.addItems(self.comboItems)
+        combo.currentIndexChanged.connect(self.currentIndexChanged)
+        return combo
+
+    def setModelData(self, combo, model, index):
+        comboIndex=combo.currentIndex()
+        text=self.comboItems[comboIndex]
+        model.setData(index, text)
+
+    @pyqtSlot()
+    def currentIndexChanged(self):
+        self.commitData.emit(self.sender())
+
+class myModel(QAbstractTableModel):
+    def __init__(self, parent=None, *args):
+        QAbstractTableModel.__init__(self, parent, *args)
+        self.items=['Item01','Item00','Item02']
+
+    def rowCount(self, parent=QModelIndex()):
+        return len(self.items)
+
+    def columnCount(self, parent=QModelIndex()):
+        return 1
+
+    def data(self, index, role):
+        if not index.isValid():
+            return QVariant()
+
+        row=index.row()
+        item=self.items[row]
+
+        if row > len(self.items):
+            return QVariant()
+
+        if role == Qt.DisplayRole:
+            return QVariant(item)
+
+    def flags(self, index):
+        return Qt.ItemIsEditable | Qt.ItemIsEnabled
+
+    def setData(self, index, text):
+        self.items[index.row()]=text
+
 
 if __name__ == '__main__':
 
     app = QApplication(sys.argv)
     app.setStyle("plastique")
 
-    listView = QListView()
-    listView.show()
+#    listView = QListView()
+#    listView.show()
 
-    comboBox = QComboBox()
-    comboBox.show()
+#    comboBox = QComboBox()
+#    comboBox.show()
 
-    tableView = QTableView()
-    tableView.show()
+#    tableView = QTableView()
+#    tableView.show()
 
     headers = ["000","001","002"]
 
@@ -113,12 +197,25 @@ if __name__ == '__main__':
                 ['lmn',800,980]
     ]
 
-    model = myTableModel(tableData0, headers)
+#    model = myTableModel(tableData0, headers)
 
-    listView.setModel(model)
-    comboBox.setModel(model)
+#    listView.setModel(model)
+#    comboBox.setModel(model)
+#    tableView.setModel(model)
+
+#----------------------------#
+    model = myModel()
+    tableView = QTableView()
     tableView.setModel(model)
 
+    delegate = comboDelegate()
+
+    tableView.setItemDelegate(delegate)
+    tableView.resizeRowsToContents()
+
+    tableView.show()
+
+#----------------------------#
 #    formtest = FormTest()
 #    formtest.show()
     sys.exit(app.exec_())
